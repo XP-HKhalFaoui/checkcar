@@ -3,6 +3,7 @@ import '../models/vehicle.dart';
 import 'vehicle_details_screen.dart';
 import '../l10n/app_localizations.dart'; // Import localizations
 import 'settings_screen.dart'; // Assuming you have settings screen
+import 'vehicle_form_screen.dart'; // Add this import
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -48,15 +49,20 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
+      body: GridView.builder(
+        padding: const EdgeInsets.all(8.0),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Two cards per row
+          childAspectRatio: 1.0, // Square cards
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
         itemCount: demoVehicles.length,
         itemBuilder: (context, index) {
           final vehicle = demoVehicles[index];
           return Card(
-            margin: const EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text('${vehicle.brand} ${vehicle.model}'),
-              subtitle: Text('${vehicle.year} - ${vehicle.licensePlate}'),
+            elevation: 4,
+            child: InkWell(
               onTap: () {
                 Navigator.push(
                   context,
@@ -66,6 +72,37 @@ class HomeScreen extends StatelessWidget {
                   ),
                 );
               },
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.directions_car,
+                      size: 48,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${vehicle.brand} ${vehicle.model}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${vehicle.year} - ${vehicle.licensePlate}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -73,7 +110,20 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: localizations.translate('addVehicleTooltip'),
         onPressed: () {
-          // Navigate to add vehicle screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VehicleFormScreen(
+                onSave: (newVehicle) {
+                  // Here you would typically add the vehicle to your data source
+                  // For now, we'll just navigate back
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Vehicle added successfully!')),
+                  );
+                },
+              ),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),

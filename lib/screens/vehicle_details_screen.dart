@@ -20,7 +20,7 @@ class VehicleDetailsScreen extends StatefulWidget {
 class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   // Demo data - would come from database in real app
   List<Part> _parts = [];
   List<Document> _documents = [];
@@ -87,7 +87,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         items: [
           InspectionItem(name: 'Brakes', passed: true),
           InspectionItem(name: 'Lights', passed: true),
-          InspectionItem(name: 'Suspension', passed: false, notes: 'Needs attention'),
+          InspectionItem(
+              name: 'Suspension', passed: false, notes: 'Needs attention'),
         ],
       ),
     ];
@@ -107,9 +108,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Parts'),
-            Tab(text: 'Documents'),
-            Tab(text: 'Inspections'),
+            Tab(text: 'Parts  🛠️'),
+            Tab(text: 'Papers 📄'),
+            Tab(text: 'Inspections ✅'),
           ],
         ),
       ),
@@ -136,14 +137,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   Widget _buildPartsTab() {
     return _parts.isEmpty
         ? Center(
-            child: Text('No parts added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
+            child: Text(
+                'No parts added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
           )
         : ListView.builder(
             itemCount: _parts.length,
             itemBuilder: (context, index) {
               final part = _parts[index];
               final percentRemaining = part.lifePercentageRemaining;
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -195,14 +197,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   Widget _buildDocumentsTab() {
     return _documents.isEmpty
         ? Center(
-            child: Text('No documents added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
+            child: Text(
+                'No documents added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
           )
         : ListView.builder(
             itemCount: _documents.length,
             itemBuilder: (context, index) {
               final document = _documents[index];
               final daysLeft = document.daysUntilExpiry;
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -270,15 +273,17 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   Widget _buildInspectionsTab() {
     return _inspections.isEmpty
         ? Center(
-            child: Text('No inspections added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
+            child: Text(
+                'No inspections added for ${widget.vehicle.brand} ${widget.vehicle.model}'),
           )
         : ListView.builder(
             itemCount: _inspections.length,
             itemBuilder: (context, index) {
               final inspection = _inspections[index];
-              final passedItems = inspection.items.where((item) => item.passed).length;
+              final passedItems =
+                  inspection.items.where((item) => item.passed).length;
               final totalItems = inspection.items.length;
-              
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
@@ -291,7 +296,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                       Text(
                         'Passed: $passedItems/$totalItems items',
                         style: TextStyle(
-                          color: passedItems == totalItems ? Colors.green : Colors.orange,
+                          color: passedItems == totalItems
+                              ? Colors.green
+                              : Colors.orange,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -318,16 +325,16 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
                   onTap: () {
                     Navigator.push(
                       context,
-                        MaterialPageRoute(
-                          builder: (context) => InspectionDetailScreen(
-                            inspection: inspection,
-                            onUpdate: (updatedInspection) {
-                              setState(() {
-                                _inspections[index] = updatedInspection;
-                              });
-                            },
-                          ),
+                      MaterialPageRoute(
+                        builder: (context) => InspectionDetailScreen(
+                          inspection: inspection,
+                          onUpdate: (updatedInspection) {
+                            setState(() {
+                              _inspections[index] = updatedInspection;
+                            });
+                          },
                         ),
+                      ),
                     );
                   },
                 ),

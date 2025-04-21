@@ -63,7 +63,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
+        child: SingleChildScrollView(
+          reverse: true,
           key: _formKey,
           child: Column(
             children: [
@@ -71,33 +72,38 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                 initialValue: _brand,
                 decoration: InputDecoration(labelText: 'Brand'),
                 onSaved: (value) => _brand = value!,
-                validator: (value) => value!.isEmpty ? 'Please enter a brand' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a brand' : null,
               ),
               TextFormField(
                 initialValue: _model,
                 decoration: InputDecoration(labelText: 'Model'),
                 onSaved: (value) => _model = value!,
-                validator: (value) => value!.isEmpty ? 'Please enter a model' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a model' : null,
               ),
               TextFormField(
                 initialValue: _year.toString(),
                 decoration: InputDecoration(labelText: 'Year'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _year = int.parse(value!),
-                validator: (value) => value!.isEmpty ? 'Please enter a year' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a year' : null,
               ),
               TextFormField(
                 initialValue: _currentMileage.toString(),
                 decoration: InputDecoration(labelText: 'Current Mileage'),
                 keyboardType: TextInputType.number,
                 onSaved: (value) => _currentMileage = int.parse(value!),
-                validator: (value) => value!.isEmpty ? 'Please enter the current mileage' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter the current mileage' : null,
               ),
               TextFormField(
                 initialValue: _licensePlate,
                 decoration: InputDecoration(labelText: 'License Plate'),
                 onSaved: (value) => _licensePlate = value!,
-                validator: (value) => value!.isEmpty ? 'Please enter a license plate' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a license plate' : null,
               ),
               SizedBox(height: 20),
               ElevatedButton(
