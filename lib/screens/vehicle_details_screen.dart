@@ -29,8 +29,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _loadDemoData();
+    _tabController = TabController(length: 4, vsync: this);
+    _loadDemoData(); // These lists are populated here
   }
 
   void _loadDemoData() {
@@ -108,7 +108,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Parts  🛠️'),
+            Tab(text: 'Summary 📊'),
+            Tab(text: 'Parts 🛠️'),
             Tab(text: 'Papers 📄'),
             Tab(text: 'Inspections ✅'),
           ],
@@ -117,6 +118,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
+          // Summary Tab
+          _buildSummaryTab(_parts, _documents, _inspections),
           // Parts Tab
           _buildPartsTab(),
           // Documents Tab
@@ -347,14 +350,48 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
     // Add new item based on current tab
     switch (_tabController.index) {
       case 0:
+        // Summary tab - no direct add action
+        // Maybe show a dialog to choose which type to add
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Add New Item'),
+            content: const Text('What would you like to add?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showAddPartDialog();
+                },
+                child: const Text('Part'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showAddDocumentDialog();
+                },
+                child: const Text('Document'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showAddInspectionDialog();
+                },
+                child: const Text('Inspection'),
+              ),
+            ],
+          ),
+        );
+        break;
+      case 1:
         // Add new part
         _showAddPartDialog();
         break;
-      case 1:
+      case 2:
         // Add new document
         _showAddDocumentDialog();
         break;
-      case 2:
+      case 3:
         // Add new inspection
         _showAddInspectionDialog();
         break;
@@ -462,4 +499,268 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
         return 'Vignette';
     }
   }
+}
+
+Widget _buildSummaryTab(List<Part> _parts, List<Document> _documents,
+    List<Inspection> _inspections) {
+  // Calculate overall health metrics
+  final totalParts = _parts.length;
+  final healthyParts =
+      _parts.where((part) => part.lifePercentageRemaining > 30).length;
+  // Ensure partsHealth is double by using 100.0
+  final double partsHealth =
+      totalParts > 0 ? (healthyParts / totalParts) * 100.0 : 100.0;
+
+  final expiredDocs = _documents.where((doc) => doc.daysUntilExpiry < 0).length;
+  final warningDocs = _documents
+      .where((doc) => doc.daysUntilExpiry >= 0 && doc.daysUntilExpiry < 30)
+      .length;
+  // Ensure docsHealth is double by using floating-point numbers
+  final double docsHealth = _documents.isNotEmpty && expiredDocs == 0
+      ? 100.0 - (warningDocs / _documents.length) * 20.0
+      : _documents.isEmpty
+          ? 100.0
+          : 0.0;
+
+  final totalInspectionItems = _inspections.fold<int>(
+      0, (sum, inspection) => sum + inspection.items.length);
+  final passedItems = _inspections.fold<int>(
+      0,
+      (sum, inspection) =>
+          sum + inspection.items.where((item) => item.passed).length);
+  // Ensure inspectionHealth is double by using 100.0
+  final double inspectionHealth = totalInspectionItems > 0
+      ? (passedItems / totalInspectionItems) * 100.0
+      : 100.0;
+
+  // Calculate overall health (weighted average) - this will be double
+  final overallHealth =
+      (partsHealth * 0.4) + (docsHealth * 0.3) + (inspectionHealth * 0.3);
+
+  Color healthColor = Colors.green;
+  if (overallHealth < 70) healthColor = Colors.orange;
+  if (overallHealth < 50) healthColor = Colors.red;
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Overall health card
+        Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'Overall Vehicle Health',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 150,
+                  width: 300,
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: CircularProgressIndicator(
+                            value: overallHealth / 100,
+                            strokeWidth: 12,
+                            backgroundColor: Colors.grey[300],
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(healthColor),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          '${overallHealth.toStringAsFixed(0)}%',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: healthColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  overallHealth > 80
+                      ? 'Excellent Condition'
+                      : overallHealth > 60
+                          ? 'Good Condition'
+                          : overallHealth > 40
+                              ? 'Needs Attention'
+                              : 'Requires Immediate Service',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: healthColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Component health cards
+        const Text(
+          'Component Health',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Parts health - partsHealth is now guaranteed to be double
+        _buildHealthCard(
+            'Parts & Components',
+            partsHealth,
+            '${healthyParts}/${totalParts} parts in good condition',
+            Icons.build),
+
+        // Documents health - docsHealth is now guaranteed to be double
+        _buildHealthCard(
+            'Documents & Registrations',
+            docsHealth,
+            expiredDocs > 0
+                ? '$expiredDocs document(s) expired'
+                : warningDocs > 0
+                    ? '$warningDocs document(s) expiring soon'
+                    : 'All documents valid',
+            Icons.description),
+
+        // Inspection health - inspectionHealth is now guaranteed to be double
+        _buildHealthCard(
+            'Inspection Status',
+            inspectionHealth,
+            '$passedItems/$totalInspectionItems checks passed',
+            Icons.check_circle),
+
+        const SizedBox(height: 16),
+
+        // Maintenance due soon
+        if (_parts.any((part) => part.lifePercentageRemaining < 30))
+          _buildMaintenanceCard(_parts),
+      ],
+    ),
+  );
+}
+
+Widget _buildHealthCard(
+    String title, double healthPercentage, String subtitle, IconData icon) {
+  Color color = Colors.green;
+  if (healthPercentage < 70) color = Colors.orange;
+  if (healthPercentage < 50) color = Colors.red;
+
+  return Card(
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    child: ListTile(
+      leading: Icon(icon, color: color, size: 36),
+      title: Text(title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(subtitle),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: healthPercentage / 100,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${healthPercentage.toStringAsFixed(0)}%',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildMaintenanceCard(List<Part> _parts) {
+  final urgentParts = _parts
+      .where((part) => part.lifePercentageRemaining < 30)
+      .toList()
+    ..sort((a, b) =>
+        a.lifePercentageRemaining.compareTo(b.lifePercentageRemaining));
+
+  return Card(
+    margin: const EdgeInsets.only(top: 8),
+    color: Colors.amber[50],
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.orange),
+              SizedBox(width: 8),
+              Text(
+                'Maintenance Due Soon',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...urgentParts
+              .take(3)
+              .map((part) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.arrow_right,
+                          color: part.lifePercentageRemaining < 10
+                              ? Colors.red
+                              : Colors.orange,
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${part.name} (${part.lifePercentageRemaining.toStringAsFixed(0)}% remaining)',
+                            style: TextStyle(
+                              color: part.lifePercentageRemaining < 10
+                                  ? Colors.red
+                                  : Colors.orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ))
+              .toList(),
+          if (urgentParts.length > 3)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '+ ${urgentParts.length - 3} more items need attention',
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
